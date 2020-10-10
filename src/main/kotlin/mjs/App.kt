@@ -1,6 +1,6 @@
 package mjs
 
-import org.apache.logging.log4j.kotlin.Logging
+import mu.KotlinLogging
 import org.http4k.client.ApacheClient
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -9,8 +9,9 @@ import org.http4k.core.Status.Companion.OK
 import org.http4k.server.Netty
 import org.http4k.server.asServer
 
+private val logger = KotlinLogging.logger {}
+
 class App {
-    companion object : Logging
 
     fun serverAndClient() {
         val app = { request: Request -> Response(OK).body("Hello, ${request.query("name")}!") }

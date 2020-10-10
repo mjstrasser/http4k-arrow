@@ -7,6 +7,7 @@ repositories {
     jcenter()
 }
 
+val kotlinLoggingVersion = "2.0.3"
 val log4jVersion = "2.13.3"
 val log4jKotlinVersion = "1.0.0"
 val http4kVersion = "3.265.0"
@@ -16,9 +17,9 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
+    implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
     implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
-    implementation("org.apache.logging.log4j:log4j-api-kotlin:$log4jKotlinVersion")
 
     implementation(platform("org.http4k:http4k-bom:$http4kVersion"))
     implementation("org.http4k:http4k-core")
