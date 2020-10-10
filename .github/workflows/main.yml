@@ -1,0 +1,14 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ '*' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Gradle clean and test
+        run: ./gradlew clean test
