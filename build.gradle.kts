@@ -7,12 +7,25 @@ repositories {
     jcenter()
 }
 
+val http4kVersion = "3.265.0"
+val kotestVersion = "4.2.6"
+
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    implementation(platform("org.http4k:http4k-bom:$http4kVersion"))
+    implementation("org.http4k:http4k-core")
+    implementation("org.http4k:http4k-server-netty")
+    implementation("org.http4k:http4k-client-apache")
+
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.kotest:kotest-property:$kotestVersion")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 application {
