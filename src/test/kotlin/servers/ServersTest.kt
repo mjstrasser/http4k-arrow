@@ -47,13 +47,15 @@ class ServersTest : DescribeSpec({
     }
 
     describe("slowServer") {
-        fun timedResponse(delay: Int): Long {
+        fun executionMillis(block: () -> Unit): Long {
             val start = System.currentTimeMillis()
-            slowServer(Request(Method.GET, "/").query("delay", delay.toString()))
+            block()
             return System.currentTimeMillis() - start
         }
         it("takes as least as many seconds specified") {
-            timedResponse(2) shouldBeGreaterThanOrEqualTo 2000
+            executionMillis {
+                slowServer(Request(Method.GET, "/").query("delay", "2"))
+            } shouldBeGreaterThanOrEqualTo 2000
         }
     }
 
