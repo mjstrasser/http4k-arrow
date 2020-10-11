@@ -32,26 +32,16 @@ class ServersTest : DescribeSpec({
     }
 
     describe("onlyOddServer") {
+        fun numberResponse(numString: String) =
+                onlyOddServer(Request(Method.GET, "/").query("number", numString))
         it("returns 200 OK with empty body when given an odd integer") {
-            (1..99 step 2).forEach { odd ->
-                onlyOddServer(
-                        Request(Method.GET, "/").query("number", odd.toString())
-                ) shouldBe Response(Status.OK).body("")
-            }
+            (1..99 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.OK).body("") }
         }
         it("returns 400 Bad Request when given an even integer") {
-            (0..100 step 2).forEach { even ->
-                onlyOddServer(
-                        Request(Method.GET, "/").query("number", even.toString())
-                ) shouldBe Response(Status.BAD_REQUEST).body("")
-            }
+            (0..100 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.BAD_REQUEST).body("") }
         }
         it("returns 400 Bad Request when given a non-integer") {
-            animals.forEach { animal ->
-                onlyOddServer(
-                        Request(Method.GET, "/").query("number", animal)
-                ) shouldBe Response(Status.BAD_REQUEST).body("")
-            }
+            animals.forEach { numberResponse(it) shouldBe Response(Status.BAD_REQUEST).body("") }
         }
     }
 })
