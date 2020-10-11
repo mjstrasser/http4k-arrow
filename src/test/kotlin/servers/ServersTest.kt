@@ -1,6 +1,7 @@
 package servers
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.shouldBe
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -42,6 +43,17 @@ class ServersTest : DescribeSpec({
         }
         it("returns 400 Bad Request when given a non-integer") {
             animals.forEach { numberResponse(it) shouldBe Response(Status.BAD_REQUEST).body("") }
+        }
+    }
+
+    describe("slowServer") {
+        fun timedResponse(delay: Int): Long {
+            val start = System.currentTimeMillis()
+            slowServer(Request(Method.GET, "/").query("delay", delay.toString()))
+            return System.currentTimeMillis() - start
+        }
+        it("takes as least as many seconds specified") {
+            timedResponse(2) shouldBeGreaterThanOrEqualTo 2000
         }
     }
 })
