@@ -19,3 +19,5 @@ val slowServer: HttpHandler = { request ->
     Thread.sleep(delay * 1000L)
     Response(Status.OK).body("")
 }
+
+val failServer: HttpHandler = { request -> Response(Status.INTERNAL_SERVER_ERROR) }

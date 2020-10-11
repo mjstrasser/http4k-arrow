@@ -56,4 +56,10 @@ class ServersTest : DescribeSpec({
             timedResponse(2) shouldBeGreaterThanOrEqualTo 2000
         }
     }
+
+    describe("failServer") {
+        it("returns 500 Internal Server Error") {
+            failServer(Request(Method.GET, "/")) shouldBe Response(Status.INTERNAL_SERVER_ERROR)
+        }
+    }
 })
