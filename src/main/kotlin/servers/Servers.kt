@@ -5,3 +5,11 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 
 val helloServer: HttpHandler = { request -> Response(Status.OK).body("Hello, ${request.query("name")}!") }
+
+fun String?.oddOrNull(): Int? = this?.toIntOrNull()?.let { if (it % 2 != 0) it else null }
+
+val onlyOddServer: HttpHandler = { request ->
+    request.query("number").oddOrNull()?.let {
+                Response(Status.OK).body("")
+            } ?: Response(Status.BAD_REQUEST).body("")
+}
