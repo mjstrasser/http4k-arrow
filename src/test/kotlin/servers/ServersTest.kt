@@ -20,7 +20,7 @@ class ServersTest : DescribeSpec({
         }
     }
 
-    describe("String.oddOrNull() function") {
+    describe("String.oddOrNull() extension function") {
         it("returns odd integers") {
             (1..99 step 2).forEach { odd -> odd.toString().oddOrNull() shouldBe odd }
         }
