@@ -13,6 +13,10 @@ import org.http4k.core.Request
 import org.http4k.server.Http4kServer
 import org.http4k.server.Netty
 import org.http4k.server.asServer
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
+import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -47,15 +51,32 @@ fun callAll(): IO<Unit> = IO.fx {
 }
 
 
+@OptIn(ExperimentalTime::class)
 fun main() {
-    startServers()
-    logger.info { "Started" }
+    val clock = TimeSource.Monotonic
+    val mark = clock.markNow()
 
-    val scope = CoroutineScope(SupervisorJob())
-    scope.launch {
-        suspendCancellableCoroutine { callAll() }
-    }
+    startServers()
+    logger.info { "Started [${mark.elapsedNow()}]" }
+
+    val client = ApacheClient()
+
+    client(Request(Method.GET, "http://localhost:8000/").query("name", "Alginon"))
+    logger.info { "Sent request to helloServer [${mark.elapsedNow()}]" }
+
+    client(Request(Method.GET, "http://localhost:8001/").query("number", "103"))
+    logger.info { "Sent odd request to onlyOddServer [${mark.elapsedNow()}]" }
+
+    client(Request(Method.GET, "http://localhost:8001/").query("number", "54"))
+    logger.info { "Sent even request to onlyOddServer [${mark.elapsedNow()}]" }
+
+    client(Request(Method.GET, "http://localhost:8002/").query("delay", "2"))
+    logger.info { "Sent 2-second delay request to delayServer [${mark.elapsedNow()}]" }
+
+    client(Request(Method.GET, "http://localhost:8003/"))
+    logger.info { "Sent request to failServer [${mark.elapsedNow()}]" }
 
     stopServers()
-    logger.info { "Stopped" }
+    logger.info { "Stopped [${mark.elapsedNow()}]" }
+
 }

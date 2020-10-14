@@ -1,5 +1,7 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.10"
     application
 }
 
@@ -17,7 +19,6 @@ val kotestVersion = "4.2.6"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxVersion")
 
@@ -35,6 +36,10 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-property:$kotestVersion")
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
 }
 
 tasks.withType<Test> {
