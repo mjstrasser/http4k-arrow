@@ -1,22 +1,23 @@
 package servers
 
-import arrow.fx.IO
-import arrow.fx.extensions.fx
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.http4k.client.ApacheClient
+import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.server.Http4kServer
 import org.http4k.server.Netty
 import org.http4k.server.asServer
-import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
+import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -31,52 +32,62 @@ val allServers = listOf(
 fun startServers() = allServers.forEach(Http4kServer::start)
 fun stopServers() = allServers.forEach(Http4kServer::stop)
 
-fun callAll(): IO<Unit> = IO.fx {
-    val client = ApacheClient()
+val requests = flowOf(
+        Request(Method.GET, "http://localhost:8000/").query("name", "Alginon"),
+        Request(Method.GET, "http://localhost:8001/").query("number", "103"),
+        Request(Method.GET, "http://localhost:8001/").query("number", "54"),
+        Request(Method.GET, "http://localhost:8002/").query("delay", "2"),
+        Request(Method.GET, "http://localhost:8003/"),
+)
 
-    !effect { client(Request(Method.GET, "http://localhost:8000/").query("name", "Alginon")) }
-    logger.info { "Sent request to helloServer" }
+@OptIn(ExperimentalTime::class)
+fun callDirectly(mark: TimeMark, client: HttpHandler) {
+    fun log(msg: String) = logger.info { "[${mark.elapsedNow()}] $msg" }
 
-    !effect { client(Request(Method.GET, "http://localhost:8001/").query("number", "103")) }
-    logger.info { "Sent odd request to onlyOddServer" }
+    client(Request(Method.GET, "http://localhost:8000/").query("name", "Alginon"))
+    log("Sent request to helloServer")
 
-    !effect { client(Request(Method.GET, "http://localhost:8001/").query("number", "54")) }
-    logger.info { "Sent even request to onlyOddServer" }
+    client(Request(Method.GET, "http://localhost:8001/").query("number", "103"))
+    log("Sent odd request to onlyOddServer")
 
-    !effect { client(Request(Method.GET, "http://localhost:8002/").query("delay", "3")) }
-    logger.info { "Sent 3-second delay request to delayServer" }
+    client(Request(Method.GET, "http://localhost:8001/").query("number", "54"))
+    log("Sent even request to onlyOddServer")
 
-    !effect { client(Request(Method.GET, "http://localhost:8003/")) }
-    logger.info { "Sent request to failServer" }
+    client(Request(Method.GET, "http://localhost:8002/").query("delay", "2"))
+    log("Sent 2-second delay request to delayServer")
+
+    client(Request(Method.GET, "http://localhost:8003/"))
+    log("Sent request to failServer")
+
 }
-
 
 @OptIn(ExperimentalTime::class)
 fun main() {
     val clock = TimeSource.Monotonic
     val mark = clock.markNow()
 
+    fun log(msg: String) = logger.info { "[${mark.elapsedNow()}] $msg" }
+
     startServers()
-    logger.info { "Started [${mark.elapsedNow()}]" }
+    log("Started servers")
 
     val client = ApacheClient()
+    log("Created client")
 
-    client(Request(Method.GET, "http://localhost:8000/").query("name", "Alginon"))
-    logger.info { "Sent request to helloServer [${mark.elapsedNow()}]" }
+    callDirectly(mark, client)
 
-    client(Request(Method.GET, "http://localhost:8001/").query("number", "103"))
-    logger.info { "Sent odd request to onlyOddServer [${mark.elapsedNow()}]" }
-
-    client(Request(Method.GET, "http://localhost:8001/").query("number", "54"))
-    logger.info { "Sent even request to onlyOddServer [${mark.elapsedNow()}]" }
-
-    client(Request(Method.GET, "http://localhost:8002/").query("delay", "2"))
-    logger.info { "Sent 2-second delay request to delayServer [${mark.elapsedNow()}]" }
-
-    client(Request(Method.GET, "http://localhost:8003/"))
-    logger.info { "Sent request to failServer [${mark.elapsedNow()}]" }
+    runBlocking {
+        log("Created coroutine scope")
+        val flow = requests.map { req ->
+            client(req)
+        }
+        log("Created flow")
+        flow.map { response ->
+            log("Got response: $response")
+        }
+    }
 
     stopServers()
-    logger.info { "Stopped [${mark.elapsedNow()}]" }
+    log("Stopped servers")
 
 }

@@ -48,7 +48,3 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
-
-application {
-    mainClassName = "mjs.AppKt"
-}
