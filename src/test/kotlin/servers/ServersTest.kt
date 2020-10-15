@@ -7,6 +7,9 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
+import kotlin.time.seconds
 
 class ServersTest : DescribeSpec({
 
@@ -35,33 +38,29 @@ class ServersTest : DescribeSpec({
     describe("onlyOddServer") {
         fun numberResponse(numString: String) =
                 onlyOddServer(Request(Method.GET, "/").query("number", numString))
-        it("returns 200 OK with empty body when given an odd integer") {
-            (1..99 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.OK) }
+        it("returns 200 OK when given an odd integer") {
+            (1..99 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.OK).body("$it") }
         }
         it("returns 400 Bad Request when given an even integer") {
-            (0..100 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.BAD_REQUEST) }
+            (0..100 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.BAD_REQUEST).body("bad") }
         }
         it("returns 400 Bad Request when given a non-integer") {
-            animals.forEach { numberResponse(it) shouldBe Response(Status.BAD_REQUEST) }
+            animals.forEach { numberResponse(it) shouldBe Response(Status.BAD_REQUEST).body("bad") }
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     describe("slowServer") {
-        fun executionMillis(block: () -> Unit): Long {
-            val start = System.currentTimeMillis()
-            block()
-            return System.currentTimeMillis() - start
-        }
         it("takes as least as many seconds specified") {
-            executionMillis {
+            measureTimedValue {
                 slowServer(Request(Method.GET, "/").query("delay", "2"))
-            } shouldBeGreaterThanOrEqualTo 2000
+            }.duration shouldBeGreaterThanOrEqualTo 2.seconds
         }
     }
 
     describe("failServer") {
         it("returns 500 Internal Server Error") {
-            failServer(Request(Method.GET, "/")) shouldBe Response(Status.INTERNAL_SERVER_ERROR)
+            failServer(Request(Method.GET, "/")) shouldBe Response(Status.INTERNAL_SERVER_ERROR).body("error")
         }
     }
 })

@@ -10,14 +10,14 @@ fun String?.oddOrNull(): Int? = this?.toIntOrNull()?.let { if (it % 2 != 0) it e
 
 val onlyOddServer: HttpHandler = { request ->
     request.query("number").oddOrNull()?.let {
-        Response(Status.OK)
-    } ?: Response(Status.BAD_REQUEST)
+        Response(Status.OK).body("$it")
+    } ?: Response(Status.BAD_REQUEST).body("bad")
 }
 
 val slowServer: HttpHandler = { request ->
     val delay = request.query("delay")?.toIntOrNull() ?: 0
     Thread.sleep(delay * 1000L)
-    Response(Status.OK)
+    Response(Status.OK).body("Waited!!")
 }
 
-val failServer: HttpHandler = { request -> Response(Status.INTERNAL_SERVER_ERROR) }
+val failServer: HttpHandler = { Response(Status.INTERNAL_SERVER_ERROR).body("error") }
