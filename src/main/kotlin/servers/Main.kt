@@ -62,12 +62,16 @@ fun main() = runBlocking {
     val client = ApacheClient()
     log("Created client")
 
+    var responseList: List<Response> = listOf()
 //    val resp = async { call(client, requests[0]) }
-//    launch {
-    val responses = requests.map { req -> async { call(::log, client, req) } }
-//        log("Launched")
-//    }.join()
-    responses.awaitAll()//.map { resp -> log("${resp.status.code}: ${resp.body}") }
+    launch {
+        log("Launched")
+        val responses = requests.map { req -> async { call(::log, client, req) } }
+        responseList = responses.awaitAll()
+        log("End of launched scope")
+    }.join()
+
+    responseList.map { resp -> log("${resp.status.code}: ${resp.body}") }
 
     stopServers()
     log("Stopped servers")
