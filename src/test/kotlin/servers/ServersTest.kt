@@ -11,7 +11,9 @@ import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.OK
 import org.http4k.kotest.haveBody
+import org.http4k.kotest.haveHeader
 import org.http4k.kotest.haveStatus
+import org.http4k.kotest.shouldNotHaveHeader
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import kotlin.time.seconds
@@ -73,6 +75,18 @@ class ServersTest : DescribeSpec({
         it("returns 500 Internal Server Error") {
             failServer(Request(Method.GET, "/")) should
                     (haveStatus(Status.INTERNAL_SERVER_ERROR) and haveBody("error"))
+        }
+    }
+
+    describe("requestIdFilter") {
+        it("ignores $REQUEST_ID_HEADER if not present in request") {
+            helloServer(Request(Method.GET, "/")) shouldNotHaveHeader REQUEST_ID_HEADER
+        }
+        it("applies the value of $REQUEST_ID_HEADER from header to response") {
+            val animal = animals.random()
+            helloServer(
+                    Request(Method.GET, "/").header(REQUEST_ID_HEADER, animal)
+            ) should haveHeader(REQUEST_ID_HEADER, animal)
         }
     }
 })

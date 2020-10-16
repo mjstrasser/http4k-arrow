@@ -1,23 +1,33 @@
 package servers
 
+import org.http4k.core.Filter
 import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.core.then
 
-val helloServer: HttpHandler = { request -> Response(Status.OK).body("Hello, ${request.query("name")}!") }
+const val REQUEST_ID_HEADER = "Request-Id"
+
+val requestIdFilter: Filter = Filter { next ->
+    { request -> next(request).header(REQUEST_ID_HEADER, request.header(REQUEST_ID_HEADER)) }
+}
+
+fun reqFilter(handler: HttpHandler) = requestIdFilter.then(handler)
+
+val helloServer: HttpHandler = reqFilter { request -> Response(Status.OK).body("Hello, ${request.query("name")}!") }
 
 fun String?.oddOrNull(): Int? = this?.toIntOrNull()?.let { if (it % 2 != 0) it else null }
 
-val onlyOddServer: HttpHandler = { request ->
+val onlyOddServer: HttpHandler = reqFilter { request ->
     request.query("number").oddOrNull()?.let {
         Response(Status.OK).body("$it")
     } ?: Response(Status.BAD_REQUEST).body("bad")
 }
 
-val slowServer: HttpHandler = { request ->
+val slowServer: HttpHandler = reqFilter { request ->
     val delay = request.query("delay")?.toIntOrNull() ?: 0
     Thread.sleep(delay * 1000L)
     Response(Status.OK).body("Waited!!")
 }
 
-val failServer: HttpHandler = { Response(Status.INTERNAL_SERVER_ERROR).body("error") }
+val failServer: HttpHandler = reqFilter { Response(Status.INTERNAL_SERVER_ERROR).body("error") }
