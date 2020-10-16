@@ -13,7 +13,7 @@ repositories {
 val kotlinLoggingVersion = "2.0.3"
 val log4jVersion = "2.13.3"
 val log4jKotlinVersion = "1.0.0"
-val http4kVersion = "3.265.0"
+val http4kVersion = "3.268.0"
 val arrowVersion = "0.11.0"
 val coroutinesVersion = "1.3.9"
 val serializationVersion ="1.0.0"
@@ -39,6 +39,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-property:$kotestVersion")
+    testImplementation("org.http4k:http4k-testing-kotest:$http4kVersion")
 }
 
 tasks.withType<KotlinCompile> {

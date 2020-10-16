@@ -1,12 +1,17 @@
 package servers
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.and
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import org.http4k.core.Method
 import org.http4k.core.Request
-import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.core.Status.Companion.BAD_REQUEST
+import org.http4k.core.Status.Companion.OK
+import org.http4k.kotest.haveBody
+import org.http4k.kotest.haveStatus
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import kotlin.time.seconds
@@ -19,7 +24,7 @@ class ServersTest : DescribeSpec({
     describe("helloServer") {
         it("says Hello to the name it is given") {
             val fred = Request(Method.GET, "/").query("name", "Frederic")
-            helloServer(fred) shouldBe Response(Status.OK).body("Hello, Frederic!")
+            helloServer(fred) should (haveStatus(OK) and haveBody("Hello, Frederic!"))
         }
     }
 
@@ -39,13 +44,19 @@ class ServersTest : DescribeSpec({
         fun numberResponse(numString: String) =
                 onlyOddServer(Request(Method.GET, "/").query("number", numString))
         it("returns 200 OK when given an odd integer") {
-            (1..99 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.OK).body("$it") }
+            (1..99 step 2).forEach {
+                numberResponse(it.toString()) should (haveStatus(OK) and haveBody("$it"))
+            }
         }
         it("returns 400 Bad Request when given an even integer") {
-            (0..100 step 2).forEach { numberResponse(it.toString()) shouldBe Response(Status.BAD_REQUEST).body("bad") }
+            (0..100 step 2).forEach {
+                numberResponse(it.toString()) should (haveStatus(BAD_REQUEST) and haveBody("bad"))
+            }
         }
         it("returns 400 Bad Request when given a non-integer") {
-            animals.forEach { numberResponse(it) shouldBe Response(Status.BAD_REQUEST).body("bad") }
+            animals.forEach {
+                numberResponse(it) should (haveStatus(BAD_REQUEST) and haveBody("bad"))
+            }
         }
     }
 
@@ -60,7 +71,8 @@ class ServersTest : DescribeSpec({
 
     describe("failServer") {
         it("returns 500 Internal Server Error") {
-            failServer(Request(Method.GET, "/")) shouldBe Response(Status.INTERNAL_SERVER_ERROR).body("error")
+            failServer(Request(Method.GET, "/")) should
+                    (haveStatus(Status.INTERNAL_SERVER_ERROR) and haveBody("error"))
         }
     }
 })
