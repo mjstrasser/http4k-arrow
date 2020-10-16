@@ -1,16 +1,9 @@
 package servers
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.http4k.client.ApacheClient
 import org.http4k.core.HttpHandler
@@ -63,7 +56,6 @@ fun main() = runBlocking {
     log("Created client")
 
     var responseList: List<Response> = listOf()
-//    val resp = async { call(client, requests[0]) }
     launch {
         log("Launched")
         val responses = requests.map { req -> async { call(::log, client, req) } }
