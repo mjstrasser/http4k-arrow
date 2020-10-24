@@ -38,14 +38,14 @@ class SerializationTest : DescribeSpec({
     describe("Kotlin serialization") {
         it("serialises JSON as expected") {
             Json.encodeToString(
-                    Person("Mike", ZonedDateTime.of(1961, 1, 4, 9, 4, 0, 0, ZoneOffset.of("+10:00")))
+                    Person("Mike", ZonedDateTime.of(1961, 1, 4, 9, 4, 0, 0, ZoneOffset.ofHours(10)))
             ) shouldBe """{"name":"Mike","dob":"1961-01-04T09:04+10:00"}"""
         }
         it("deserialises JSON as expected") {
             Json.decodeFromString<Person>(
                     """{"name":"Lucy","dob":"1961-01-04T09:11+10:00"}"""
             ) shouldBe Person(
-                    "Lucy", ZonedDateTime.of(1961, 1, 4, 9, 11, 0, 0, ZoneOffset.of("+10:00"))
+                    "Lucy", ZonedDateTime.of(1961, 1, 4, 9, 11, 0, 0, ZoneOffset.ofHours(10))
             )
 
         }
