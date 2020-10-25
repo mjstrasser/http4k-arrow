@@ -30,23 +30,21 @@ object ZonedDateTimeSerializer : KSerializer<ZonedDateTime> {
 data class Person(
         val name: String,
         @Serializable(ZonedDateTimeSerializer::class)
-        val dob: ZonedDateTime
+        val bornWhen: ZonedDateTime
 )
 
 class SerializationTest : DescribeSpec({
 
     describe("Kotlin serialization") {
         it("serialises JSON as expected") {
-            Json.encodeToString(
-                    Person("Mike", ZonedDateTime.of(1961, 1, 4, 9, 4, 0, 0, ZoneOffset.ofHours(10)))
-            ) shouldBe """{"name":"Mike","dob":"1961-01-04T09:04+10:00"}"""
+            val mikeBornWhen = ZonedDateTime.of(1961, 1, 4, 9, 4, 0, 0, ZoneOffset.ofHours(10))
+            Json.encodeToString(Person("Mike", mikeBornWhen)) shouldBe
+                    """{"name":"Mike","bornWhen":"1961-01-04T09:04+10:00"}"""
         }
         it("deserialises JSON as expected") {
-            Json.decodeFromString<Person>(
-                    """{"name":"Lucy","dob":"1961-01-04T09:11+10:00"}"""
-            ) shouldBe Person(
-                    "Lucy", ZonedDateTime.of(1961, 1, 4, 9, 11, 0, 0, ZoneOffset.ofHours(10))
-            )
+            val lucyBornWhen = ZonedDateTime.of(1961, 1, 4, 9, 11, 0, 0, ZoneOffset.ofHours(10))
+            Json.decodeFromString<Person>("""{"name":"Lucy","bornWhen":"1961-01-04T09:11+10:00"}""") shouldBe
+                    Person("Lucy", lucyBornWhen)
 
         }
     }
