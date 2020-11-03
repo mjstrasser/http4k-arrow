@@ -1,5 +1,6 @@
 package servers
 
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -38,7 +39,7 @@ val requests = listOf(
         Request(Method.GET, "http://localhost:8002/").query("delay", "2").requestId(),
         Request(Method.GET, "http://localhost:8001/").query("number", "54").requestId(),
         Request(Method.GET, "http://localhost:8003/").requestId(),
-)
+).shuffled()
 
 fun call(log: (String) -> Unit, client: HttpHandler, request: Request): Response {
     log("[${request.header(REQUEST_ID_HEADER)}] Calling ${request.uri}")
@@ -56,13 +57,13 @@ fun main() = runBlocking {
 
     val client = ApacheClient()
 
-    var responseList: List<Response> = listOf()
+    var responses: List<Deferred<Response>> = listOf()
     launch {
         log("Launched")
-        val responses = requests.map { req -> async { call(::log, client, req) } }
-        responseList = responses.awaitAll()
+        responses = requests.map { req -> async { call(::log, client, req) } }
         log("End of launched scope")
     }.join()
+    val responseList = responses.awaitAll()
 
     responseList.map(::logResponse)
 
